@@ -5,7 +5,7 @@ using System.Text.Json;
 
 namespace CrestBank.Http
 {
-    public class BankHttpClient
+    public class BankHttpClient : IBankHttpClient
     {
         private readonly HttpClient _client;
 

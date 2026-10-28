@@ -1,6 +1,6 @@
 namespace CrestBank;
 
-public class ServerConsole
+public class ServerConsole : IServerConsole
 {
     public void DisplayServerStarted(string address)
     {
