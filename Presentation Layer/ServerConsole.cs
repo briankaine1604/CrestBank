@@ -21,4 +21,9 @@ public class ServerConsole
     {
         Console.WriteLine($"[CrestBank] transfer rejected: {reason}");
     }
+
+    public void DisplayDuplicateTransfer(string transferId)
+    {
+        Console.WriteLine($"[CrestBank] duplicate transfer {transferId} replayed - nothing credited");
+    }
 }

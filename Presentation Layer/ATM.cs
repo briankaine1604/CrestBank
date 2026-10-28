@@ -248,11 +248,14 @@ namespace CrestBank
                 return;
             }
 
+            // A reference generated BEFORE the request lets the other bank
+            // recognise a retry of the same transfer instead of applying it twice.
+            string transferId = Guid.NewGuid().ToString("N");
+
             // Blocking on purpose: the console menu has to stay in step with the
             // request, and there is no UI thread here to deadlock on.
             (bool success, string message) =
-                _httpClient.TransferAsync(recipientAccountNumber, amount)
-                    .GetAwaiter().GetResult();
+                SendWithRetry(recipientAccountNumber, amount, transferId);
 
             if (success)
             {
@@ -268,6 +271,31 @@ namespace CrestBank
                 "Transfer In");
 
             _atmConsole.DisplayInterBankTransferFailed(message);
+        }
+
+        private (bool Success, string Message) SendWithRetry(
+            string recipientAccountNumber,
+            decimal amount,
+            string transferId)
+        {
+            (bool success, string message) = _httpClient
+                .TransferAsync(recipientAccountNumber, amount, transferId)
+                .GetAwaiter().GetResult();
+
+            if (success)
+            {
+                return (true, message);
+            }
+
+            // Retry ONCE with the same reference. If the first attempt reached the
+            // other bank and only the answer was lost, this one is recognised as a
+            // duplicate and returns the original outcome instead of crediting twice.
+            // That is what lets the caller report success instead of reversing.
+            (success, message) = _httpClient
+                .TransferAsync(recipientAccountNumber, amount, transferId)
+                .GetAwaiter().GetResult();
+
+            return (success, message);
         }
 
         public void Run()
