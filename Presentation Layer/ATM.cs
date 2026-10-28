@@ -255,7 +255,7 @@ namespace CrestBank
             // Everything the other bank needs to show this transfer on its own
             // statement is built once, before the debit, and reused on the retry:
             // same reference, same sender, same amount.
-            TransferRequest request = new()
+            TransferRequestDto request = new()
             {
                 AccountNumber = recipientAccountNumber,
                 Amount = amount,
@@ -285,7 +285,7 @@ namespace CrestBank
             _atmConsole.DisplayInterBankTransferFailed(message);
         }
 
-        private (bool Success, string Message) SendWithRetry(TransferRequest request)
+        private (bool Success, string Message) SendWithRetry(TransferRequestDto request)
         {
             (bool success, string message) = _httpClient
                 .TransferAsync(request)
