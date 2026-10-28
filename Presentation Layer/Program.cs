@@ -15,8 +15,12 @@ Admin admin = new("admin", "password");
 BankSeeder.Seed(bank);
 
 // Talks to NovaBank, and listens for NovaBank talking to us.
-var httpClient = new BankHttpClient("http://localhost:5001/");
-var httpServer = new BankHttpServer(bank, serverConsole, "http://localhost:5002/");
+// Shared secret for the inter-bank channel; both banks must hold the same value.
+// A real deployment keeps one key per peer in configuration, never in source.
+const string InterBankSecret = "nova-crest-demo-secret-change-me";
+
+var httpClient = new BankHttpClient("http://localhost:5001/", InterBankSecret);
+var httpServer = new BankHttpServer(bank, serverConsole, "http://localhost:5002/", InterBankSecret);
 _ = httpServer.Start();
 
 ATM atm = new(bank, aTMConsole, adminConsole, admin, httpClient);
