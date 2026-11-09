@@ -1,82 +1,42 @@
 # CrestBank
 
-A console banking application (.NET 10). One of a pair of banks — CrestBank is
-"Bank B" — that each run as their own process and move money between each
-other over HTTP.
-
-## Layers
-
-    BLL/                  Customers, accounts, transactions, seeding, transfers
-    BLL/Interfaces/       Contracts the business layer exposes
-    Http/                 Inter-bank transfer server and client, request signing
-    Http/Interfaces/      Contracts for the server and client
-    Presentation Layer/   ATM console, ATM session, admin console, services, DI wiring
+A console banking app in C# (.NET 10). This is Bank B. It is normally started by
+NovaBank (Bank A), which passes it its address, the peer's address and the
+shared secret.
 
 ## Run
 
+Usually you don't run this directly - run NovaBank and it starts this. On its own:
+
     dotnet run
 
-or open `CrestBank.slnx` in Visual Studio and press F5. Admin login is
+It defaults to port 5002 and peer http://localhost:5001/. Admin login is
 `admin` / `password`.
 
-Normally you do not start it this way: NovaBank, in its own repository, starts
-this bank and hands it the pair's addresses and shared secret, so both sides
-always agree. Those arrive as arguments, and the defaults above apply only when
-it is started on its own:
+## What it does itself
 
-| Argument   | Meaning                                    | Default                 |
-| ---------- | ------------------------------------------ | ----------------------- |
-| `--own`    | Where this bank listens                    | `http://localhost:5002/` |
-| `--peer`   | Where NovaBank listens                     | `http://localhost:5001/` |
-| `--secret` | HMAC key for `/transfers`                  | `nova-crest-demo-secret` |
+Accounts, deposits, withdrawals, and transfers to its own accounts.
 
-Started by NovaBank, its ATM closes when NovaBank exits.
+## What it asks Bank A for
 
-## Server output
+Airtime and data (menu 6 and 7). This bank has no telco side, so it takes the
+money from the customer, calls Bank A's /airtime or /data, and reverses the debit
+if Bank A refuses or does not answer.
 
-The HTTP server runs in the same process as the ATM, on a background thread. Its
-events - an incoming transfer, a rejected request, a replayed transfer - go to
-`bank.log` in the working directory, never to the ATM screen, because the screen
-belongs to whoever is logged in. Only the listener's own startup line - its
-address, or a failure to bind - still prints, because that happens before any
-session exists and a listener that did not start must be loud.
+## Files worth reading
 
-The log lives in the folder the bank was started from: the repository folder
-under `dotnet run`, the project folder under Visual Studio's F5. Nothing else
-writes to it, and it is git-ignored.
+    Presentation Layer/AirtimeService.cs   airtime and data purchases
+    Presentation Layer/TransferService.cs  local and inter-bank transfers
+    Http/BankHttpClient.cs                 how it calls Bank A
+    bank.log                               incoming transfers and rejections
 
-An admin can read it from inside the app: Admin login > 5. Server activity shows
-the last ten lines. It is a pull, not a push - nothing prints while you are
-typing, so the prompt and the record never collide.
+## Accounts to log into
 
-## Airtime and data
+    3030000998 / 1234   50,000
+    3030000999 / 1234   500,000
 
-This bank has no telco relationship. Buying airtime or data debits the customer
-here, then calls Bank A (`/airtime` or `/data`); Bank A delivers and returns a
-reference. If Bank A is unreachable, or refuses the order, the debit is reversed
-and the ATM says so - the customer never pays for something Bank A did not
-deliver. With Bank A down, airtime and data simply do not work here, by design.
+## Notes
 
-## Inter-bank contract
-
-CrestBank is one half of a two-bank system. Its peer, NovaBank, lives in its own
-repository. Both processes must be running for a cross-bank transfer to work.
-
-| Setting            | CrestBank       | NovaBank (peer) |
-| ------------------ | --------------- | --------------- |
-| HTTP listener      | localhost:5002  | localhost:5001  |
-| Account prefix     | `303`           | `000`           |
-| Shared secret      | `nova-crest-demo-secret` | same    |
-
-These values are set in `Presentation Layer/Program.cs`. Changing a port, the
-account prefix, the peer address, or the shared secret means changing it in the
-peer repository too — there is no shared package holding them.
-
-Requests to `/transfers` are signed with the shared secret and a timestamp;
-unsigned, stale, or wrongly signed requests are rejected by both sides.
-
-## History
-
-This repository was split out of the `ConsoleBank` solution, which held both
-banks. Its commit history was extracted from that repository with
-`git subtree split`, so commits that touched only the other bank are not here.
+- Started by Bank A: when Bank A exits, this ATM closes too.
+- This repo was split out of an older solution that held both banks, so the
+  earliest commits are not here.

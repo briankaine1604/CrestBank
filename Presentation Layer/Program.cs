@@ -6,7 +6,7 @@ Console.Title = "CrestBank ATM  (Bank B)";
 
 string ownAddress = Argument("--own") ?? "http://localhost:5002/";
 string peerAddress = Argument("--peer") ?? "http://localhost:5001/";
-string interBankSecret = Argument("--secret") ?? "nova-crest-demo-secret";
+string interBankSecret = Argument("--secret") ?? "shared-secret-5059";
 
 string? Argument(string name)
 {
