@@ -4,8 +4,6 @@ using Microsoft.Extensions.DependencyInjection;
 
 Console.Title = "CrestBank ATM  (Bank B)";
 
-// NovaBank starts this process and hands it both addresses and the shared secret,
-// so the pair cannot disagree. Run on its own, these defaults keep it usable.
 string ownAddress = Argument("--own") ?? "http://localhost:5002/";
 string peerAddress = Argument("--peer") ?? "http://localhost:5001/";
 string interBankSecret = Argument("--secret") ?? "nova-crest-demo-secret";
@@ -19,7 +17,6 @@ string? Argument(string name)
 
 var services = new ServiceCollection();
 
-// One Bank for the life of the process, shared by the ATM and the HTTP listener.
 services.AddSingleton(_ =>
 {
     var bank = new Bank();
@@ -29,7 +26,6 @@ services.AddSingleton(_ =>
 
 services.AddSingleton(_ => new Admin("admin", "password"));
 
-// ATMConsole is ONE object registered under each role, so each service gets only the slice it asks for.
 services.AddSingleton<ATMConsole>();
 services.AddSingleton<IInputReader>(p => p.GetRequiredService<ATMConsole>());
 services.AddSingleton<IMenuScreen>(p => p.GetRequiredService<ATMConsole>());
@@ -51,14 +47,13 @@ services.AddSingleton<AdminService>();
 services.AddSingleton<IBankHttpClient>(
     _ => new BankHttpClient(peerAddress, interBankSecret));
 
-// Which account numbers this bank owns. Everything else is routed to the peer over HTTP.
 const string OwnAccountPrefix = "303";
 const string BankName = "CrestBank";
 const string PeerBankName = "NovaBank";
 
 services.AddSingleton(_ => new LocalAccountNumbers(OwnAccountPrefix));
 
-// Routes in priority order: the first one that handles the recipient takes the transfer.
+// Order matters: the first route that handles the number takes the transfer.
 services.AddSingleton<ITransferRoute>(provider => new LocalTransferRoute(
     provider.GetRequiredService<Bank>(),
     provider.GetRequiredService<LocalAccountNumbers>(),
@@ -84,7 +79,6 @@ services.AddSingleton<ATM>();
 
 await using ServiceProvider provider = services.BuildServiceProvider();
 
-// Talks to NovaBank, and listens for NovaBank talking to us.
 _ = provider.GetRequiredService<IBankHttpServer>().Start();
 
 ATM atm = provider.GetRequiredService<ATM>();
