@@ -7,5 +7,7 @@ namespace CrestBank
         void DisplayAirtimePurchaseSuccess(decimal amount, string phone, string network, decimal newBalance);
 
         void DisplayDataPurchaseSuccess(DataPlan plan, string phone, string network, decimal newBalance);
+
+        void DisplayPurchaseFailed(string message);
     }
 }

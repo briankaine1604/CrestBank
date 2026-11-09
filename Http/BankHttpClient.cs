@@ -70,5 +70,48 @@ namespace CrestBank.Http
                              + "Check with the bank before retrying.");
             }
         }
+
+        public async Task<(bool Success, string Message)> BuyAirtimeAsync(AirtimeRequestDto order)
+        {
+            string json = JsonSerializer.Serialize(order);
+
+            string timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
+
+            using var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            string path = order.Product == "data" ? "data" : "airtime";
+
+            using var request = new HttpRequestMessage(HttpMethod.Post, path)
+            {
+                Content = content
+            };
+
+            request.Headers.Add("X-Bank-Timestamp", timestamp);
+            request.Headers.Add(
+                "X-Bank-Signature",
+                RequestSignature.Sign(_sharedSecret, timestamp, json));
+
+            try
+            {
+                using HttpResponseMessage response = await _client.SendAsync(request);
+
+                string message = await response.Content.ReadAsStringAsync();
+
+                if (response.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    return (false, "Bank A rejected the request signature.");
+                }
+
+                return (response.IsSuccessStatusCode, message);
+            }
+            catch (HttpRequestException)
+            {
+                return (false, "Bank A is unreachable, so nothing was delivered.");
+            }
+            catch (TaskCanceledException)
+            {
+                return (false, "Bank A did not answer, so nothing was delivered.");
+            }
+        }
     }
 }

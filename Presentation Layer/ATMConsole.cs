@@ -207,6 +207,12 @@ public class ATMConsole :
         Console.WriteLine($"Remaining balance: {newBalance:N2}");
     }
 
+    public void DisplayPurchaseFailed(string message)
+    {
+        Console.WriteLine($"Purchase failed: {message}");
+        Console.WriteLine("Nothing was taken from your account.");
+    }
+
     public void DisplayDataPurchaseSuccess(DataPlan plan, string phone, string network, decimal newBalance)
     {
         Console.WriteLine($"Data purchase successful: {plan.Name} for {phone} ({network})");

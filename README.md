@@ -49,6 +49,14 @@ An admin can read it from inside the app: Admin login > 5. Server activity shows
 the last ten lines. It is a pull, not a push - nothing prints while you are
 typing, so the prompt and the record never collide.
 
+## Airtime and data
+
+This bank has no telco relationship. Buying airtime or data debits the customer
+here, then calls Bank A (`/airtime` or `/data`); Bank A delivers and returns a
+reference. If Bank A is unreachable, or refuses the order, the debit is reversed
+and the ATM says so - the customer never pays for something Bank A did not
+deliver. With Bank A down, airtime and data simply do not work here, by design.
+
 ## Inter-bank contract
 
 CrestBank is one half of a two-bank system. Its peer, NovaBank, lives in its own
