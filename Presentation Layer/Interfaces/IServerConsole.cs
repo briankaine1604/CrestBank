@@ -17,5 +17,7 @@ namespace CrestBank
         void DisplayTransferRejected(string reason);
 
         void DisplayDuplicateTransfer(string transferId);
+
+        IReadOnlyList<string> RecentLines(int count);
     }
 }
