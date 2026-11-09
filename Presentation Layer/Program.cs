@@ -3,10 +3,19 @@ using CrestBank.Http;
 using Microsoft.Extensions.DependencyInjection;
 
 Console.Title = "CrestBank ATM  (Bank B)";
-const string InterBankSecret = "nova-crest-demo-secret";
 
-const string PeerBankAddress = "http://localhost:5001/";
-const string OwnAddress = "http://localhost:5002/";
+// NovaBank starts this process and hands it both addresses and the shared secret,
+// so the pair cannot disagree. Run on its own, these defaults keep it usable.
+string ownAddress = Argument("--own") ?? "http://localhost:5002/";
+string peerAddress = Argument("--peer") ?? "http://localhost:5001/";
+string interBankSecret = Argument("--secret") ?? "nova-crest-demo-secret";
+
+string? Argument(string name)
+{
+    int index = Array.IndexOf(args, name);
+
+    return index >= 0 && index + 1 < args.Length ? args[index + 1] : null;
+}
 
 var services = new ServiceCollection();
 
@@ -40,7 +49,7 @@ services.AddSingleton<AirtimeService>();
 services.AddSingleton<AdminService>();
 
 services.AddSingleton<IBankHttpClient>(
-    _ => new BankHttpClient(PeerBankAddress, InterBankSecret));
+    _ => new BankHttpClient(peerAddress, interBankSecret));
 
 // Which account numbers this bank owns. Everything else is routed to the peer over HTTP.
 const string OwnAccountPrefix = "303";
@@ -68,8 +77,8 @@ services.AddSingleton<IBankHttpServer>(
     provider => new BankHttpServer(
         provider.GetRequiredService<Bank>(),
         provider.GetRequiredService<IServerConsole>(),
-        OwnAddress,
-        InterBankSecret));
+        ownAddress,
+        interBankSecret));
 
 services.AddSingleton<ATM>();
 

@@ -19,6 +19,19 @@ other over HTTP.
 or open `CrestBank.slnx` in Visual Studio and press F5. Admin login is
 `admin` / `password`.
 
+Normally you do not start it this way: NovaBank, in its own repository, starts
+this bank and hands it the pair's addresses and shared secret, so both sides
+always agree. Those arrive as arguments, and the defaults above apply only when
+it is started on its own:
+
+| Argument   | Meaning                                    | Default                 |
+| ---------- | ------------------------------------------ | ----------------------- |
+| `--own`    | Where this bank listens                    | `http://localhost:5002/` |
+| `--peer`   | Where NovaBank listens                     | `http://localhost:5001/` |
+| `--secret` | HMAC key for `/transfers`                  | `nova-crest-demo-secret` |
+
+Started by NovaBank, its ATM closes when NovaBank exits.
+
 ## Inter-bank contract
 
 CrestBank is one half of a two-bank system. Its peer, NovaBank, lives in its own
