@@ -9,7 +9,6 @@ public class ServerConsole : IServerConsole
     public void DisplayServerStarted(string address)
     {
         Console.WriteLine($"[CrestBank] HTTP server listening on {address}");
-        Console.WriteLine($"[CrestBank] server log: {_logPath}");
     }
 
     public void DisplayServerStartFailed(string message, int errorCode)
