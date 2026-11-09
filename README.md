@@ -32,6 +32,15 @@ it is started on its own:
 
 Started by NovaBank, its ATM closes when NovaBank exits.
 
+## Server output
+
+The HTTP server runs in the same process as the ATM, on a background thread. Its
+events - an incoming transfer, a rejected request, a replayed transfer - go to
+`bank.log` in the working directory, never to the ATM screen, because the screen
+belongs to whoever is logged in. The startup lines (address, log path, or a
+listener failure) still print on the console: they happen before any session
+exists, and a listener that did not start must be loud.
+
 ## Inter-bank contract
 
 CrestBank is one half of a two-bank system. Its peer, NovaBank, lives in its own
